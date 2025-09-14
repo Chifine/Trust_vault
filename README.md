@@ -1,4 +1,4 @@
-# TrTrust_vault
+# Trust_vault
 
 # Remembrance Ledger - Digital Legacy Vault
 
