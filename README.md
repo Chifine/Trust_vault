@@ -1,75 +1,121 @@
-# Trust_vault
 
-# Remembrance Ledger - Digital Legacy Vault
+# TrustVault – Decentralized Escrow Service
 
-A decentralized smart contract platform built on Stacks blockchain for preserving digital memories, wills, and personal messages for future generations. Remembrance Ledger enables secure, tamper-proof storage of encrypted legacy content with time-based release mechanisms.
+**TrustVault** is a decentralized escrow platform built on the Stacks blockchain. It enables secure **peer-to-peer transactions** with automated dispute resolution and a built-in arbitration system. Buyers and sellers can transact with confidence while arbitrators step in only when disputes arise.
 
-## Features
+---
 
-- **Encrypted Memory Storage**: Store encrypted letters, wills, photos, videos, and documents
-- **Time-Based Release**: Automatic content release based on predetermined block heights
-- **Multi-Type Support**: Support for letters, wills, photos, videos, and documents
-- **Access Control**: Secure recipient-only access after release
-- **Emergency Release**: Creator-controlled immediate release functionality
-- **Access Logging**: Comprehensive tracking of memory access and interactions
-- **Fee Management**: Configurable contract fees with owner controls
+## 🚀 Features
 
-## Smart Contract Functions
+* **Escrow Creation** – Buyers can create an escrow agreement with sellers.
+* **Funds Deposit** – Buyers fund escrows with STX (amount + fee).
+* **Completion Mechanism**
+
+  * Buyer confirms successful delivery, **or**
+  * Seller provides a **completion code** to unlock funds.
+* **Dispute Handling** – Either party may initiate a dispute within the dispute window.
+* **Arbitration** – A designated arbitrator resolves disputes by voting in favor of the buyer or seller.
+* **Platform Fees** – A configurable platform fee (default: **2.5%**) is collected per transaction.
+* **Transparency** – On-chain record of all escrow agreements, disputes, and resolutions.
+
+---
+
+## 📜 Escrow Lifecycle
+
+1. **Create Escrow** – Buyer defines seller, amount, description, optional arbitrator, and completion code.
+2. **Fund Escrow** – Buyer deposits STX (amount + fee) into the smart contract.
+3. **Completion** –
+
+   * Buyer confirms delivery **or**
+   * Seller submits completion code (if enabled).
+     Funds are then released to the seller, and the platform fee is collected.
+4. **Dispute** – If an issue arises, either party may raise a dispute before the **24-hour dispute deadline**.
+5. **Resolution** – Arbitrator casts a vote.
+
+   * **Favor buyer** → Refund issued.
+   * **Favor seller** → Payment released.
+     Platform fee is still collected.
+6. **Escrow Closure** – Escrow state updated to **Completed**, **Resolved**, or **Cancelled**.
+
+---
+
+## ⚖️ Escrow States
+
+| State     | Code | Description                                 |
+| --------- | ---- | ------------------------------------------- |
+| Pending   | `u1` | Escrow created but not funded.              |
+| Funded    | `u2` | Buyer deposited funds, awaiting completion. |
+| Completed | `u3` | Transaction successfully closed.            |
+| Disputed  | `u4` | Dispute initiated within the deadline.      |
+| Resolved  | `u5` | Arbitrator resolved the dispute.            |
+| Cancelled | `u6` | Escrow canceled before funding.             |
+
+---
+
+## ⚡ Key Functions
 
 ### Public Functions
 
-- `create-memory`: Store encrypted content with specified recipient and release time
-- `release-memory`: Release memory to recipient (creator or automatic after release time)
-- `access-memory`: Access released memory content (recipient only)
-- `emergency-release`: Immediate release by creator
-- `update-contract-fee`: Update contract fees (owner only)
+* `create-escrow` → Create a new escrow agreement.
+* `fund-escrow` → Buyer deposits funds.
+* `complete-escrow` → Buyer confirms delivery or seller provides completion code.
+* `initiate-dispute` → Buyer or seller raises a dispute.
+* `vote-dispute` → Arbitrator resolves dispute.
 
 ### Read-Only Functions
 
-- `get-memory`: Retrieve memory details with privacy controls
-- `get-user-memories`: Get list of memories created by user
-- `get-recipient-memories`: Get list of memories for recipient
-- `get-contract-stats`: View contract statistics
-- `is-memory-ready-for-release`: Check if memory is ready for release
+* `get-escrow` → Fetch escrow details by ID.
+* `get-user-escrows` → Retrieve all escrows linked to a user.
+* `get-platform-stats` → Platform statistics (total escrows, fee rate, dispute period).
 
-## Installation
+---
 
-1. Install Clarinet:
-\`\`\`bash
-curl -L https://github.com/hirosystems/clarinet/releases/download/v1.0.0/clarinet-linux-x64.tar.gz | tar xz
-\`\`\`
+## 🔐 Security & Safeguards
 
-2. Clone the repository:
-\`\`\`bash
-git clone <repository-url>
-cd remembrance-ledger
-\`\`\`
+* Only **buyer** can fund an escrow.
+* Only **buyer or seller** can raise a dispute.
+* Only the **designated arbitrator** can resolve disputes.
+* Funds are securely locked in the contract until a valid resolution occurs.
 
-3. Install dependencies:
-\`\`\`bash
-npm install
-\`\`\`
+---
 
-## Usage
+## 📊 Platform Parameters
 
-### Deploy Contract
-\`\`\`bash
-clarinet deploy --testnet
-\`\`\`
+* **Platform Fee Rate** → `2.5%` (configurable).
+* **Dispute Period** → `1440 blocks (~24 hours)`.
+* **Escrow ID Limit per User** → `50 active escrows`.
 
-### Run Tests
-\`\`\`bash
-clarinet test
-\`\`\`
+---
 
-### Create a Memory
-```clarity
-(contract-call? .remembrance-ledger create-memory
-  'SP2J6ZY48GV1EZ5V2V5RB9MP66SW86PYKKNRV9EJ7  ;; recipient
-  u1                                                ;; memory type (letter)
-  "encrypted-content-here"                          ;; encrypted content
-  "encrypted-key-here"                              ;; encryption key
-  "My Final Message"                                ;; title
-  "A heartfelt letter for my family"               ;; description
-  u1000                                             ;; release at block 1000
-)
+## 🛠️ Error Codes
+
+| Code   | Meaning                        |
+| ------ | ------------------------------ |
+| `u100` | Not authorized.                |
+| `u101` | Escrow not found.              |
+| `u102` | Invalid escrow state.          |
+| `u103` | Insufficient funds.            |
+| `u104` | Dispute period expired.        |
+| `u105` | Escrow already disputed.       |
+| `u999` | Escrow list overflow for user. |
+
+---
+
+## 📌 Example Workflow
+
+1. **Buyer** creates escrow → `create-escrow`.
+2. **Buyer** funds escrow → `fund-escrow`.
+3. **Seller** delivers goods/service.
+4. **Buyer** completes escrow OR **Seller** provides completion code → `complete-escrow`.
+5. If dispute → `initiate-dispute`.
+6. **Arbitrator** resolves → `vote-dispute`.
+
+---
+
+## 🔮 Future Enhancements
+
+* Multi-arbitrator voting system.
+* Support for milestone-based payments.
+* Token-based fee payments (e.g., USDC, wBTC).
+* Decentralized arbitration (community-driven voting).
+
